@@ -20,8 +20,6 @@ WORKDIR /app
 
 COPY --from=builder /app/.venv /app/.venv
 COPY --from=builder /app/src /app/src
-COPY muscle_ladder/ muscle_ladder/
-COPY coach_log.md coach_log.md
 
 ENV PATH="/app/.venv/bin:$PATH" \
     PYTHONUNBUFFERED=1
