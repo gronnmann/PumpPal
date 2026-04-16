@@ -1,0 +1,48 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "pumppal"
+version = "0.1.0"
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi",
+    "uvicorn[standard]",
+    "pydantic",
+    "pydantic-settings",
+    "pydantic-ai",
+    "httpx",
+    "python-telegram-bot",
+    "anyio",
+    "loguru",
+]
+
+[project.optional-dependencies]
+dev = [
+    "ruff",
+    "mypy",
+]
+
+[project.scripts]
+pumppal = "pumppal.main:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/pumppal"]
+
+[tool.mypy]
+strict = true
+python_version = "3.12"
+files = ["src"]
+python_executable = ".venv/bin/python"
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+src = ["src"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM", "RUF"]
+
+[tool.ruff.format]
+quote-style = "double"
