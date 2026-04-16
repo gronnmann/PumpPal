@@ -1,6 +1,6 @@
 # PumpPal
 
-A personal AI workout coach that lives in Telegram. When you finish a workout in [Hevy](https://hevyapp.com), PumpPal gets notified via webhook, asks for any notes, then analyses your session, adjusts your routine for next time, and sends you a detailed coaching message — all grounded in a gym/approach knowledge base.
+A personal AI workout coach that lives in Telegram. When you finish a workout in [Hevy](https://hevyapp.com), PumpPal gets notified via webhook, asks for any notes, then analyses your session, adjusts your routine for next time, and sends you a detailed coaching message — all grounded in a swappable knowledge base of training methodology.
 
 ---
 
@@ -20,7 +20,7 @@ PydanticAI agent
   ├── Fetches full workout      (Hevy API)
   ├── Fetches recent history    (Hevy API)
   ├── Fetches current routines  (Hevy API)
-  ├── Reads relevant book chapters (muscle_ladder/)
+  ├── Reads KB index + relevant files (kb_dir/)
   ├── Applies double-progression logic
   ├── Updates the routine       (Hevy API)
   ├── Writes session entry      (coach_log.md)
@@ -91,7 +91,7 @@ OPENROUTER_MODEL=anthropic/claude-sonnet-4.6   # optional, this is the default
 
 # Optional
 COACH_LOG_PATH=coach_log.md         # where the session journal is stored
-MUSCLE_LADDER_DIR=muscle_ladder     # path to the book chapters
+KB_DIR=my_kb                        # path to your knowledge base folder
 ```
 
 ### 4. Register the Hevy webhook
@@ -170,26 +170,41 @@ Example entry:
 
 ## Knowledge base
 
-The book chapters live in `muscle_ladder/` and are loaded on demand by the agent:
+PumpPal is knowledge-base agnostic. Point `KB_DIR` at any folder of markdown files and the agent will use it. Bring your own training methodology.
+
+### Structure
+
+A KB folder must contain an `index.md` at its root. The agent always reads this file first to orient itself before fetching any other files.
 
 ```
-chapter_01_setting_up_the_ladder.md
-chapter_02_sustainability.md
-chapter_03_mindset.md
-chapter_04_technique.md
-chapter_05_exercise_selection.md
-chapter_06_effort.md
-chapter_07_progressive_overload.md
-chapter_08_volume.md
-chapter_09_training_splits_and_frequency.md
-chapter_10_load_and_rep_ranges.md
-chapter_11_rest_periods.md
-chapter_12_advanced_techniques.md
-chapter_13_periodization.md
-chapter_14_nutrition_cardio_supplements.md
-chapter_15_training_programs.md
-chapter_16_conclusion.md
+my_kb/
+├── index.md    ← required — describes the KB and how to use it
+├── topic_a.md
+├── topic_b.md
+└── ...
 ```
+
+`index.md` should cover:
+- What this KB is and its core framework
+- How the agent should reason with it (e.g. priority order, decision rules)
+- Any equipment constraints or user-specific context
+- A table mapping filenames to their contents so the agent knows what to fetch
+
+### Swapping the KB
+
+To use a different methodology:
+
+1. Create a new folder with your markdown files and an `index.md`.
+2. Set `KB_DIR=/path/to/your/kb` in `.env`.
+3. Restart PumpPal — no code changes needed.
+
+### Agent tools
+
+| Tool | What it does |
+|---|---|
+| `read_kb_index` | Reads `index.md` — always called first for KB context |
+| `list_kb_files` | Lists all `.md` files in the KB (excluding `index.md`) |
+| `read_kb_file` | Reads a specific file by filename |
 
 ---
 
@@ -220,7 +235,9 @@ PumpPal/
 │   └── hevy/
 │       ├── client.py     # async Hevy API client
 │       └── models.py     # Pydantic v2 models for Hevy responses
-├── muscle_ladder/        # Jeff Nippard's Muscle Ladder chapters (markdown)
+├── kb/                   # knowledge base folder (bring your own)
+│   ├── index.md          # required — KB index read first by the agent
+│   └── *.md              # your methodology files
 ├── coach_log.md          # auto-generated session journal (gitignored)
 └── pyproject.toml
 ```
